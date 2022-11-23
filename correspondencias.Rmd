@@ -1,0 +1,80 @@
+---
+title: "ugr.multivariante.correspondencias"
+author: "franmarq@gmail.com"
+date: '2022-11-22'
+output: html_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+Para este ejecicio vamos a utilizar los datos 'Burdeaux' que son  las opiniones de 200 jueces en una cata a ciegas de cinco tipos diferentes de vinos tinto de la zona de Burdeos, en el suroeste de Francia. Esta data viene incluida en el paquete 'Ade4'.
+
+```{r data}
+library("ade4")
+library("factoextra")
+data(bordeaux)
+head(bordeaux)
+
+```
+
+Tal como fue solicitado, vemos que la variable opinión cuenta con 4 categorias y la variable marca cuenta con 5 marcas de vinos distintos.
+
+
+```{r correlac}
+chisq.test(bordeaux)
+```
+El resultado del test chi-cuadrado nos sugiere rechazar la hipótesis de independencia de las variables (p<0.05) por lo que es válido aplicar un análisis de correspondencias para estudar su posible asociación  
+
+Aplicamos ahora el análisis de correspondencias
+
+```{r corresp}
+db <- dudi.coa(bordeaux, scan = FALSE)
+db
+```
+El resultadio nos muestran valores para posible tres factores a considerar, el resultado de los valoires de inercia en los tres casos (eigen values): 0.5906 0.1102 0.03109, nos inidca que el primer eje tiene significativamente más poder clasificatorio que los otros dos. El tercero es muy bajo y puede ser descartado. 
+
+Graficamente estos resultados serían: 
+
+```{r plotcorresp}
+
+fviz_screeplot(db, addlabels=TRUE,ylim=c(0,70))
+```
+Como se mencionó antes parece adecuado considerar sólo los dos primeros ejes para la explicación de la varianza total. 
+
+A continuación se obtienen los pesos de las filas y las columnas:
+
+```{r pesosfilas}
+db$lw
+db$cw
+```
+De las marcas de vinos, todos parecen tener la misma influencia mientras que de las opiniones la de mayor influencia fue la de 'Bueno' (good)
+
+Generamos ahora graficos que nos permitan describir como se relacionan las variables
+
+En este primer grafico, En este las filas y las columnas se representan en el mismo espacio utilizando las coordenadas principales.
+```{r plotcorresp2}
+fviz_ca_biplot(db)
+```
+Dado que la distancia entre los puntos, azules filas rojos columnas, es la que nos permite concluir sobre las similitudes en este grafico. vemos claramente como 
+
+Grand_Cru_classe se relaciona con la mayoria de las opiniones 'excelente'. 
+Cru_Bourgeois se relaciona con la mayoria de las opiniones 'bueno'. 
+Vin_de_table se relaciona con la mayoria de las opiniones 'aburrido'.
+Vin_de_marque se relaciona con la mayoria de las opiniones 'mediocre'.
+
+
+Graficamos ahora los perfiles fila en el espacio de las columnas y El segundo gráfico representa los perfiles columna en el espacio de las filas
+
+```{r plot2}
+fviz_ca_biplot(db, map ="rowprincipal", arrow = c(TRUE, TRUE))
+fviz_ca_biplot(db, map ="colprincipal", arrow = c(TRUE, TRUE))
+```
+
+En estos grágicos, si el ángulo entre dos flechas es agudo, entonces existe una fuerte asociación entre la fila y la columna correspondientes. Deducimos entonces alta correlación entre: 
+
+Grand_Cru_classe y 'excelente'. 
+Cru_Bourgeois con 'bueno'. 
+Vin_de_table con 'aburrido'.
+Vin_de_marque con 'mediocre'.

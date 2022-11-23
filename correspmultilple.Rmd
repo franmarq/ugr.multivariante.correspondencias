@@ -1,0 +1,118 @@
+---
+title: "ugr.multivariante.correspmultip"
+author: "franmarq@gmail.com"
+date: '2022-11-22'
+output: html_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+```{r startsetup}
+library("ade4")
+library("factoextra")
+library("FactoMineR ")
+``` 
+
+
+Data de trabajo
+
+Los datos del fichero datos2.csv corresponden a un grupo de egresados universitarios a los que se les ha preguntado por su forma de buscar empleo tras acabar la Universidad. En este fichero de datos tenemos las siguientes variables:
+• Anuncios: Busca empleo a través de anuncios
+• INEM: Busca empleo en las oficinas del INEM
+• ETTs: Busca empleo en las empresas de trabajo temporal
+• Contactos: Busca empleo a través de contactos personales
+• Oposiciones: Se está preparando oposiciones
+• Autónomo: Ha emprendido un negocio
+• Otra
+Todas estas variables son dicotómicas, con categorías Si y No cada una de ellas.
+
+
+inicialmente, leemos y validamos las caracteristicas principales del conjunto de datos
+
+```{r data}
+data2<-read.csv("datos2.csv",header = TRUE, sep = ";")
+str(data2)
+#vemos que la variable inicial es un indice por lo que la excluimos del cinjunto
+data3<- data2[,-1]
+#convertimos a las variables en factores para poder usarlos en el análisis
+data3$Anuncios <-as.factor(data3$Anuncios)
+data3$INEM <-as.factor(data3$INEM)
+data3$ETTs <-as.factor(data3$INEM)
+data3$Contactos <-as.factor(data3$Contactos)
+data3$Oposiciones <- as.factor(data3$Oposiciones)
+data3$Autonomo <- as.factor(data3$Autonomo)
+data3$Otra <- as.factor(data3$Otra)
+```
+
+Para el an_alisis de correspondencias
+m_ultiples el n_umero total de dimensiones que se generan es igual al n_umero total de categor__as
+(p=14) menos el n_umero de variables cualitativas (s=7) consideradas en el an_alisis. Por tanto, en este
+caso tenemos p-s=14-7=7 dimensiones.
+
+Una
+forma usual de proceder es analizar aquellas dimensiones cuya inercia sea mayor que la inercia media
+por dimensi_on (inercia total/n_umero de dimensiones). La inercia total se obtiene haciendo uso de las
+modalidades y el n_umero de variables categ_oricas, ya que se obtiene como el n_umero de modalidades
+(p=16) entre el n_umero de variables cualitativas (s=6) menos 1.
+
+```{r calcmediainer}
+p<-14
+s<-7
+Iner_total<-(p/s)-1
+Iner_total
+```
+analizaremos aquellas dimensiones con una inercia mayor a 1
+
+
+```{r correspmul}
+dbm<-dudi.acm(data3, nf=7,scannf = FALSE)
+summary(dbm)
+
+```
+
+```{r plotincercia}
+
+fviz_screeplot(dbm, addlabels = TRUE, ylim=c(0,35))
+
+```
+
+Observando los autovalores y el graco parece que dos ejes seran sucientes para realizar el analisis.
+Los dos primeros ejes explican el 51.98% de la inercia. El primer eje explica el 28;9% de la inercia y
+el segundo el 23;1 %, despues de eso hay un disminucion considerable, el tercer eje explica el 2;7% de
+la inercia de los datos.
+
+A continuacion obtenemos las coordenadas por las y por columnas que nos proporciona el analisis.
+Se muestran solo los seis primeros ejes:
+
+```{r coordfilascol}
+dbm$li
+dbm$co
+
+```
+
+Ahora realizamos una serie de gr_a_cos que nos ayudan a interpretar c_omo se relacionan las variables.
+En primer lugar representamos los per_les-_la, es decir, los puntos correspondientes a las razas
+de perro. Los representamos en los dos primeros ejes (gr_a_co 2.7). En segundo lugar representamos
+de forma conjunta las razas de perro y sus caracter__sticas (gr_a_co 2.8)
+
+
+```{r plotperfiles}
+fviz_mca_ind(dbm)
+fviz_mca_biplot(dbm)
+```
+
+
+Por ultimo mostramos una serie de gracos sobre la contribucion de las distintas categoras a las
+tres primeras dimensiones:
+
+```{r plotcontrib}
+
+fviz_contrib(dbm, choice="var", axes = c(1,2), fill="blue")
+#Los siguientes gracos son una version mejorada de las nubes de puntos de los categoras en subespacios de dos dimensiones donde el color de las categoras depende de su contribucion a los subespacios de dos dimensiones donde se representan.
+
+fviz_mca_var(dbm, axes=c(1,2), choice="var.cat", repel=T, gradient.cols=c("yellow","orange","red","blue","black"),col.var="contrib")
+fviz_mca_var(dbm, axes=c(1,3), choice="var.cat", repel=T, gradient.cols=c("yellow","orange","red","blue","black"),col.var="contrib")
+fviz_mca_var(dbm, axes=c(2,3), choice="var.cat", repel=T, gradient.cols=c("yellow","orange","red","blue","black"),col.var="contrib")
+
+```
